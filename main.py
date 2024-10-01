@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from pathlib import Path
-
+from betterpathlib import Path
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -14,9 +13,27 @@ from selenium.webdriver.support.ui import WebDriverWait
 edge_driver_path = Path.home() / ("bin/msedgedriver")
 assert edge_driver_path.exists()
 
+use_edge_beta = True
+beta = "-beta" if use_edge_beta else ""
 # Path to your Edge user data directory
 # NOTE cannot have two Edge instances use the same directory at once.
-edge_user_data_dir = Path.home() / ".config/microsoft-edge-beta-selenium"
+edge_user_data_dir = Path.home() / f".config/microsoft-edge-selenium{beta}"
+
+# Copy login / session information from a source config directory
+base_dir = Path.home() / ".config"
+src_dir = base_dir / "microsoft-edge"
+session_paths = [
+    Path("Default") / "Cookies",
+    Path("Default") / "Local Storage",
+    Path("Default") / "Preferences",
+    Path("Default") / "Login Data",
+]
+for p in session_paths:
+    from_p = src_dir / p
+    to_p = edge_user_data_dir / p
+    to_p.mkdir(parents=True, exist_ok=True)
+    from_p.copy(to_p, dirs_exist_ok=True)
+
 
 # Initialize the WebDriver with your Edge profile
 options = webdriver.EdgeOptions()
